@@ -13,6 +13,8 @@ We use the Gurobi solver as back-end to solve the optimization problem, though o
 For the user-interactive example to work without modifications, Gurobi needs to be installed and configured for Matlab. 
 See http://www.gurobi.com.
 
+The user-interactive example also uses a customized ginput.m file by Jiro Doke (http://www.mathworks.com/matlabcentral/fileexchange/38703-custom-ginput/content/ginputc.m) and is included here.
+
 # Example
 
 Once everything is installed, you can run the file 'find_OptimalTraj_mpc_m3pi.m' and choose either to run the in-built 
