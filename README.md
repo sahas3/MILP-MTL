@@ -1,5 +1,6 @@
 # MILP-MTL
 An MILP Approach for Real-time Optimal Controller Synthesis with Metric Temporal Logic Specifications
+See http://tinyurl.com/sahaResearch#MILP-MTL for details.
 
 # Installing Dependencies
 
