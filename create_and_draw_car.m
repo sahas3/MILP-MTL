@@ -1,8 +1,9 @@
 function obj = create_and_draw_car(z_n,R_n,mode,n, varargin)
 % CREATE_AND_DRAW_CAR - Creates image of object (car) to be controlled
-%   r - Position vector of object
-%   R - Rotation matrix of object
-%   mode - Called in CREATE_CAR
+%   z_n - Position vector of object
+%   R_n - Rotation matrix of object
+%   mode - Called in CREATE_CAR to scale the size of the object
+%   n - number of objects to be created
 
 %% Object : Car
 

@@ -16,10 +16,9 @@ movieName = input('Type in the file name if you want to make a movie in .gif for
 % set what is to be optimized
 obj_u = 1; % when set minimizes 1-norm of control signal
 
+ctrl_horizon = 1; % control horizon for MPC
 
-ctrl_horizon = 1;
-
-rob_ball_des = 0.05;
+rob_ball_des = 0.05; % desired robustness radius
 
 plot_flag = 1; % when set plots the position of the m3pi robot in each iteration
 
@@ -28,21 +27,22 @@ ds = 0.5; % time-step for running simulation
 %% Describe system
 
 SP = get_system_description();
-SP.t0 = 0;
-SP.ds = ds;
+SP.t0 = 0; % initial time
+SP.ds = ds; % time-step
 
-SP.pred_known_sz = [];
-SP.pred_unknown_sz = [];
+SP.pred_known_sz = []; % number of known predicates
+SP.pred_unknown_sz = []; % number of unknown predicates
+
 SP.pred_unknown_sz_orig = SP.pred_unknown_sz;
 SP.unknown_pred_flag = 0;
 
 SP = select_Predicates(SP, userInput);
-hfig = SP.hfig;
+hfig = SP.hfig; % figure handle
 
 if isempty(SP.pred_unknown_sz)
     SP.pred_num = SP.pred_known_sz;
 else
-    SP.pred_num = SP.pred_known_sz + SP.pred_unknown_sz;
+    SP.pred_num = SP.pred_known_sz + SP.pred_unknown_sz; % total number of predicates
 end
 
 SP.rad = 0.067/2; % size of the m3pi robot
@@ -51,19 +51,19 @@ SP.rad = 0.067/2; % size of the m3pi robot
 %% -------------------------- System Parameters --------------------------------
 
 
-SP.times = SP.t0:SP.ds:SP.tf;
+SP.times = SP.t0:SP.ds:SP.tf; % time-points 
 SP.u0.times = SP.times;
 
 SP.input_length = size(SP.times,2);
 
 SP.return_flag = 0;
 
-SP.u0.dist_input_values = SP.times*0.;
+SP.u0.dist_input_values = SP.times*0.; % disturbance input signal
 SP.u0.dist_input_values = SP.u0.dist_input_values(ones(SP.n_outputs,1),:);
 SP.u0.dist_input_values = 0.0*rand(size(SP.u0.dist_input_values));
 
 
-SP.u0.input_values_human = zeros(SP.n_inputs, SP.input_length);
+SP.u0.input_values_human = zeros(SP.n_inputs, SP.input_length); %ignore this variable ---> needed for some other extensions of this work 
 
 % Initialize state variables
 
@@ -80,14 +80,14 @@ SP.ctrl_hor = ctrl_horizon;
 SP.hor_length = SP.pred_hor; % simulation horizon
 SP.movieName = movieName;
 
-SP.u0.min = SP.u0.min(:,ones(1,SP.hor_length+1));
-SP.u0.max = SP.u0.max(:,ones(1,SP.hor_length+1));
+SP.u0.min = SP.u0.min(:,ones(1,SP.hor_length+1)); % minimum control input ---> set in system description code
+SP.u0.max = SP.u0.max(:,ones(1,SP.hor_length+1)); % maximum control input
 
 %% ------------------------------ PLOTTING -------------------------------------
 
-SP.pred_actual = SP.pred;
-SP = modify_predicates_rob_ball( SP );
-SP.pred_orig = SP.pred;
+SP.pred_actual = SP.pred; % store the actual predicate size
+SP = modify_predicates_rob_ball( SP ); % shrink/bloat predicates depending on the robustness radius
+SP.pred_orig = SP.pred; 
 
 % Plot the predicates
 delete(hfig);

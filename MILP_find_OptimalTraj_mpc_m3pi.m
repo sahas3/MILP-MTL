@@ -4,22 +4,21 @@ function argvout = MILP_find_OptimalTraj_mpc_m3pi(SP, plot_flag, hfig)
 
 %% Initialize variables
 
-tIndxs = 1:SP.pred_hor+1;
-x_cur = SP.x0;
+tIndxs = 1:SP.pred_hor+1; % time indices corresponding to horizon length
+x_cur = SP.x0; % current state of the system
+
 SP.u0.values = zeros(SP.n_inputs, SP.hor_length + 1);
-uvals = zeros(SP.n_inputs, SP.hor_length + 1);
-yvals = zeros(SP.n_outputs, SP.hor_length + 1);
+uvals = zeros(SP.n_inputs, SP.hor_length + 1); % dummy variable to store control signals to the system
+yvals = zeros(SP.n_outputs, SP.hor_length + 1); % dummy variable to store output of the system
 solutions{3} = zeros(SP.n_outputs, SP.input_length);
-SP.yout = zeros(SP.n_outputs, SP.input_length);
+
+SP.yout = zeros(SP.n_outputs, SP.input_length); % stores the actual trajectory of the system
 
 SP.sol_count_vals = zeros;
 
-SP.states_system_prev = SP.states_system;
-SP.states_system_estimate = SP.states_system;
-
 unknown_pred_count = 0;
 
-%% Create unicycle agents for plotting and other plot variables initialization
+%% Create unicycle robot for plotting and other plot variables initialization
 
 if plot_flag
   
@@ -49,16 +48,14 @@ for ii = 1:SP.hor_length+1
   
   iter_time = tic;
   
-  sol_count = 1;
+  sol_count = 1;  % keeps track of how many iterations were required to solve the problem
   SP.tIndxs = tIndxs;
     
-  SP.states_system_prev = SP.states_system;
-  
   SP.yout(:,ii) = x_cur(1:SP.n_outputs);
   
   
   %=============================================================================
-  % get new predicate online
+  % get new predicate online by pressing the key 'b'
   %=============================================================================
   if (strcmpi(get(hfig,'currentch'),'b')) && unknown_pred_count < SP.pred_unknown_sz
     
@@ -77,53 +74,58 @@ for ii = 1:SP.hor_length+1
     SP.phi = strcat(SP.phi, ' /\ ', SP.phi_global_unknown(unknown_pred_count).str);    
   end
   
-  SP.dmin_con = -Inf;
+  SP.dmin_con = -Inf; % initialize robustness radius to -Infinity 
     
   %=============================================================================
   % Solve for the new trajectory of the system
   %=============================================================================
   
-  SP.tInd_con = 0;
-  SP.crit_pred = 0;
-  SP.constraints_tInd = zeros;
-  SP.crit_predVal = zeros;
+  SP.tInd_con = 0; % critical time index
+  SP.crit_pred = 0; % critical predicate
+  SP.constraints_tInd = zeros; % stores critical time indices values
+  SP.crit_predVal = zeros; % stores corresponding critical predicates
   
   
-  SP.break_loop = 0;
+  SP.break_loop = 0; 
   
-  prev_tInd_ind = [];
+  prev_tInd_ind = []; % tracks if a critical predicate at a certain time was added already ---> avoids looping 
   
   
   while((isempty(prev_tInd_ind) || (~isempty(prev_tInd_ind) && isempty(find...
-      (SP.crit_predVal(prev_tInd_ind) == SP.crit_pred, 1))))  && ~SP.break_loop && toc(iter_time) < 0.5*SP.ds)
+      (SP.crit_predVal(prev_tInd_ind) == SP.crit_pred, 1))))  && ~SP.break_loop && toc(iter_time) < 0.5*SP.ds) % limit execution time to less that the time-step 
     
     SP.constraints_tInd(sol_count) = SP.tInd_con;
     SP.crit_predVal(sol_count) = SP.crit_pred;
     
+    
+    % solve the optimization problem
     [solutions,diagnostics] = SP.controller{{x_cur(:) , SP.con_active , ...
       (SP.hor_length + 1 - (ii-1)), SP.u0.dist_input_values, SP.pred.A, SP.pred.b}};
     
     
+    % proceed if feasible
     if diagnostics == 1 || diagnostics == 12 || diagnostics == 15
       error('The problem is infeasible');
     end
     
     SP.u0.values = solutions{1};
     SP.xout_disc = solutions{2}';
-    SP.yout(:,ii+1:end) = solutions{3}(:,2:end-(ii-1));
+    SP.yout(:,ii+1:end) = solutions{3}(:,2:end-(ii-1)); % append future output at the end of th path already executed
     
     
     %===========================================================================
     % Compute Robustness and identify the critical constraint
     %===========================================================================
     
-    
+    % compute critical time, predicate and robustness
     [~, SP.tmin_con, SP.dmin_con, ~, SP.crit_pred] = staliro_distance(SP, ...
       SP.yout', SP.times');
     
+    % checks if critical time corresponds to a time that has already passed 
+    % abs(SP.dmin_con) > 1e-5 is to avoid looping due to numerical inaccuracies
     
     if SP.tmin_con > ((ii-1)*SP.ds) && abs(SP.dmin_con) ...
-        > 1e-5 && sign(SP.dmin_con) == -1
+        > 1e-5 && sign(SP.dmin_con) == -1 
       
       % add constraints corresponding to the critical predicates
       SP.tInd_con = round(SP.tmin_con/SP.ds)+1 - (ii-1);
@@ -144,7 +146,7 @@ for ii = 1:SP.hor_length+1
   uvals(:,ii) = solutions{1}(:,1);
   yvals(:,ii) = solutions{3}(:,1);
   
-  
+  % update position of the robot
   if plot_flag
     
     figure(hfig);

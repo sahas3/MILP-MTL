@@ -10,13 +10,11 @@ function controller = setup_MILP_controller_all_cons(SP)
   con_active = sdpvar(SP.pred_num, SP.hor_length+1); % tracks which constraints to be set to active
   d = {}; % bigM variable required for placing constraints to avoid unsafe sets ---> see below in the constraints section
   M = 1000; % bigM value
-  x_cur = sdpvar(SP.n,1);
-  rem_hor_length = sdpvar(1,1);
-%   hor_length = sdpvar(1,1);
+  x_cur = sdpvar(SP.n,1); % current state of the system
+  rem_hor_length = sdpvar(1,1); % remaining horizon length
 
-  % account for unknown predicates -----------------------------------
-  % ------------------------------------------------------------------
-  for ii = 1:SP.pred_num % SP.pred_known_sz
+  % account for dynamically changing predicate definition 
+  for ii = 1:SP.pred_num 
     pred_A(ii).vals = sdpvar(size(SP.pred(ii).A,1), size(SP.pred(ii).A,2));
     pred_b(ii).vals = sdpvar(size(SP.pred(ii).b,1), size(SP.pred(ii).b,2));
   end
@@ -24,7 +22,7 @@ function controller = setup_MILP_controller_all_cons(SP)
   %% initialize constraints and objective
   
   uVec = [u{:}];
-  objective = sum(sum(abs(uVec))); % norm(uVec,1); % 
+  objective = sum(sum(abs(uVec)));
   
   constraints = []; 
   
@@ -42,13 +40,11 @@ function controller = setup_MILP_controller_all_cons(SP)
     % add bounds on control input signal as constraints
     constraints = [constraints, SP.u0.min(:,k) <= u{k} <= SP.u0.max(:,k)];
     
+    
+    % set control value to zero for time-points beyond remaining horizon length
     if k > value(rem_hor_length)
       constraints = [constraints, u{k} == zeros(SP.n_inputs,1)];
     end
-    
-%     if k == 1 && value(rem_hor_length) == (SP.hor_length+1)
-%       constraints = [constraints, u{k} ~= zeros(SP.n_inputs,1)];
-%     end
     
   end
   

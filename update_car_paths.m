@@ -1,4 +1,9 @@
 function [objsC, time_disp] = update_car_paths(objsC, time_disp, count, Ts, lt)
+% [objsC, time_disp] = update_car_paths(objsC, time_disp, count, Ts, lt)
+% updates trajectory of the unicycle robot passed as 'objsC'
+% update time value passed as 'count' by changing the corresponding handle 'time_disp'
+% 'Ts' is time-step
+% 'lt' is the trail-length of the trajectory
 
 cObjsC = size(objsC,2);
 

@@ -1,9 +1,11 @@
 function SP = get_system_description()
+% SP = GET_SYSTEM_DESCRIPTION()
+% initializes unicycle robot dynamics
 
-  SP.u0.max = 0.25*[1 1]'; 
-  SP.u0.min = -0.25*[1 1]'; 
+  SP.u0.max = 0.25*[1 1]'; % max control allowed
+  SP.u0.min = -0.25*[1 1]'; % min control allowed
   
-  SP.A = [0 0 1 0;
+  SP.A = [0 0 1 0; 
     0 0 0 1;
     0 0 0 0;
     0 0 0 0];
