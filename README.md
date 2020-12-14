@@ -1,6 +1,6 @@
 # MILP-MTL
 An MILP Approach for Real-time Optimal Controller Synthesis with Metric Temporal Logic Specifications
-See http://tinyurl.com/sahaResearch#MILP-MTL for details.
+See https://arxiv.org/pdf/1603.02650v1.pdf for details.
 
 # Installing Dependencies
 
@@ -23,4 +23,4 @@ example or provide a reach-avoid MTL specification of your choice.
 
 # Contact Us
 
-You can contact sahas3@rpi.edu for any queries or to report any bugs in the code.
+You can contact sayan.jubiee@gmail.com for any queries or to report any bugs in the code.
